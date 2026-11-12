@@ -118,10 +118,76 @@ export const addNewAuctionItem = catchAsyncErrors(async (req, res, next) => {
   }
 });
 
+
+// export const getAllItems = catchAsyncErrors(async (req, res, next) => {
+//   const { keyword, category } = req.query;
+
+//   const query = {};
+
+//   if (keyword && keyword.trim()) {
+//     query.title = {
+//       $regex: keyword.trim(),
+//       $options: "i",
+//     };
+//   }
+
+//   if (category && category.trim()) {
+//     query.category = category.trim();
+//   }
+
+//   const items = await Auction.find(query);
+
+//   res.status(200).json({
+//     success: true,
+//     count: items.length,
+//     items,
+//   });
+// });
+
 export const getAllItems = catchAsyncErrors(async (req, res, next) => {
-  let items = await Auction.find();
+  const {
+    keyword = "",
+    category = "",
+    page = 1,
+    limit = 8,
+  } = req.query;
+
+  // Điều kiện tìm kiếm và lọc
+  const query = {};
+
+  if (keyword.trim()) {
+    query.title = {
+      $regex: keyword.trim(),
+      $options: "i",
+    };
+  }
+
+  if (category.trim()) {
+    query.category = category.trim();
+  }
+
+  // Kiểm tra và chuẩn hóa phân trang
+  const currentPage = Math.max(1, parseInt(page, 10) || 1);
+  const itemsPerPage = Math.min(
+    50,
+    Math.max(1, parseInt(limit, 10) || 8)
+  );
+
+  // Đếm tổng số phiên đấu giá phù hợp
+  const totalItems = await Auction.countDocuments(query);
+
+  // Lấy dữ liệu theo trang
+  const items = await Auction.find(query)
+    .sort({ createdAt: -1 })
+    .skip((currentPage - 1) * itemsPerPage)
+    .limit(itemsPerPage);
+
   res.status(200).json({
     success: true,
+    count: items.length,
+    totalItems,
+    currentPage,
+    totalPages: Math.ceil(totalItems / itemsPerPage),
     items,
   });
 });

@@ -11,6 +11,9 @@ const auctionSlice = createSlice({
     auctionBidders: {},
     myAuctions: [],
     allAuctions: [],
+    currentPage: 1,
+    totalPages: 1,
+    totalItems: 0,
   },
   reducers: {
     createAuctionRequest(state, action) {
@@ -25,9 +28,16 @@ const auctionSlice = createSlice({
     getAllAuctionItemRequest(state, action) {
       state.loading = true;
     },
+    // getAllAuctionItemSuccess(state, action) {
+    //   state.loading = false;
+    //   state.allAuctions = action.payload;
+    // },
     getAllAuctionItemSuccess(state, action) {
       state.loading = false;
-      state.allAuctions = action.payload;
+      state.allAuctions = action.payload.items;
+      state.currentPage = action.payload.currentPage;
+      state.totalPages = action.payload.totalPages;
+      state.totalItems = action.payload.totalItems;
     },
     getAllAuctionItemFailed(state, action) {
       state.loading = false;
@@ -86,30 +96,86 @@ const auctionSlice = createSlice({
   },
 });
 
-export const getAllAuctionItems = () => async (dispatch) => {
-  dispatch(auctionSlice.actions.getAllAuctionItemRequest());
-  try {
-    const response = await axios.get(
-      "http://localhost:5000/api/v1/auctionitem/allitems",
-      { withCredentials: true }
-    );
-    dispatch(
-      auctionSlice.actions.getAllAuctionItemSuccess(response.data.items)
-    );
-    dispatch(auctionSlice.actions.resetSlice());
-  } catch (error) {
-    dispatch(auctionSlice.actions.getAllAuctionItemFailed());
-    console.error(error);
-    dispatch(auctionSlice.actions.resetSlice());
-  }
-};
+// export const getAllAuctionItems = () => async (dispatch) => {
+//   dispatch(auctionSlice.actions.getAllAuctionItemRequest());
+//   try {
+//     const response = await axios.get(
+//       "http://localhost:5000/api/v1/auctionitem/allitems",
+//       { withCredentials: true }
+//     );
+//     dispatch(
+//       auctionSlice.actions.getAllAuctionItemSuccess(response.data.items)
+//     );
+//     dispatch(auctionSlice.actions.resetSlice());
+//   } catch (error) {
+//     dispatch(auctionSlice.actions.getAllAuctionItemFailed());
+//     console.error(error);
+//     dispatch(auctionSlice.actions.resetSlice());
+//   }
+// };
 
+// export const getAllAuctionItems =
+//   (keyword = "", category = "") =>
+//   async (dispatch) => {
+//     dispatch(auctionSlice.actions.getAllAuctionItemRequest());
+
+//     try {
+//       const response = await axios.get(
+//         "http://localhost:5000/api/v1/auctionitem/allitems",
+//         {
+//           params: {
+//             keyword,
+//             category,
+//           },
+//           withCredentials: true,
+//         },
+//       );
+
+//       dispatch(
+//         auctionSlice.actions.getAllAuctionItemSuccess(response.data.items),
+//       );
+
+//       dispatch(auctionSlice.actions.resetSlice());
+//     } catch (error) {
+//       dispatch(auctionSlice.actions.getAllAuctionItemFailed());
+//       console.error(error);
+//       dispatch(auctionSlice.actions.resetSlice());
+//     }
+//   };
+
+export const getAllAuctionItems =
+  (keyword = "", category = "", page = 1) =>
+  async (dispatch) => {
+    dispatch(auctionSlice.actions.getAllAuctionItemRequest());
+
+    try {
+      const response = await axios.get(
+        "http://localhost:5000/api/v1/auctionitem/allitems",
+        {
+          params: {
+            keyword,
+            category,
+            page,
+            limit: 4,
+          },
+          withCredentials: true,
+        },
+      );
+
+      dispatch(
+        auctionSlice.actions.getAllAuctionItemSuccess(response.data),
+      );
+    } catch (error) {
+      dispatch(auctionSlice.actions.getAllAuctionItemFailed());
+      console.error(error);
+    }
+  };
 export const getMyAuctionItems = () => async (dispatch) => {
   dispatch(auctionSlice.actions.getMyAuctionsRequest());
   try {
     const response = await axios.get(
       "http://localhost:5000/api/v1/auctionitem/myitems",
-      { withCredentials: true }
+      { withCredentials: true },
     );
     dispatch(auctionSlice.actions.getMyAuctionsSuccess(response.data.items));
     dispatch(auctionSlice.actions.resetSlice());
@@ -125,7 +191,7 @@ export const getAuctionDetail = (id) => async (dispatch) => {
   try {
     const response = await axios.get(
       `http://localhost:5000/api/v1/auctionitem/auction/${id}`,
-      { withCredentials: true }
+      { withCredentials: true },
     );
     dispatch(auctionSlice.actions.getAuctionDetailSuccess(response.data));
     dispatch(auctionSlice.actions.resetSlice());
@@ -145,7 +211,7 @@ export const createAuction = (data) => async (dispatch) => {
       {
         withCredentials: true,
         headers: { "Content-Type": "multipart/form-data" },
-      }
+      },
     );
     dispatch(auctionSlice.actions.createAuctionSuccess());
     toast.success(response.data.message);
@@ -167,7 +233,7 @@ export const republishAuction = (id, data) => async (dispatch) => {
       {
         withCredentials: true,
         headers: { "Content-Type": "application/json" },
-      }
+      },
     );
     dispatch(auctionSlice.actions.republishItemSuccess());
     toast.success(response.data.message);
@@ -189,7 +255,7 @@ export const deleteAuction = (id) => async (dispatch) => {
       `http://localhost:5000/api/v1/auctionitem/delete/${id}`,
       {
         withCredentials: true,
-      }
+      },
     );
     dispatch(auctionSlice.actions.deleteAuctionItemSuccess());
     toast.success(response.data.message);
