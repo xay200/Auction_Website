@@ -28,10 +28,6 @@ const auctionSlice = createSlice({
     getAllAuctionItemRequest(state, action) {
       state.loading = true;
     },
-    // getAllAuctionItemSuccess(state, action) {
-    //   state.loading = false;
-    //   state.allAuctions = action.payload;
-    // },
     getAllAuctionItemSuccess(state, action) {
       state.loading = false;
       state.allAuctions = action.payload.items;
@@ -96,53 +92,6 @@ const auctionSlice = createSlice({
   },
 });
 
-// export const getAllAuctionItems = () => async (dispatch) => {
-//   dispatch(auctionSlice.actions.getAllAuctionItemRequest());
-//   try {
-//     const response = await axios.get(
-//       "http://localhost:5000/api/v1/auctionitem/allitems",
-//       { withCredentials: true }
-//     );
-//     dispatch(
-//       auctionSlice.actions.getAllAuctionItemSuccess(response.data.items)
-//     );
-//     dispatch(auctionSlice.actions.resetSlice());
-//   } catch (error) {
-//     dispatch(auctionSlice.actions.getAllAuctionItemFailed());
-//     console.error(error);
-//     dispatch(auctionSlice.actions.resetSlice());
-//   }
-// };
-
-// export const getAllAuctionItems =
-//   (keyword = "", category = "") =>
-//   async (dispatch) => {
-//     dispatch(auctionSlice.actions.getAllAuctionItemRequest());
-
-//     try {
-//       const response = await axios.get(
-//         "http://localhost:5000/api/v1/auctionitem/allitems",
-//         {
-//           params: {
-//             keyword,
-//             category,
-//           },
-//           withCredentials: true,
-//         },
-//       );
-
-//       dispatch(
-//         auctionSlice.actions.getAllAuctionItemSuccess(response.data.items),
-//       );
-
-//       dispatch(auctionSlice.actions.resetSlice());
-//     } catch (error) {
-//       dispatch(auctionSlice.actions.getAllAuctionItemFailed());
-//       console.error(error);
-//       dispatch(auctionSlice.actions.resetSlice());
-//     }
-//   };
-
 export const getAllAuctionItems =
   (keyword = "", category = "", page = 1) =>
   async (dispatch) => {
@@ -156,7 +105,7 @@ export const getAllAuctionItems =
             keyword,
             category,
             page,
-            limit: 4,
+            limit: 5,
           },
           withCredentials: true,
         },
