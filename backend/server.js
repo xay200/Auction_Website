@@ -1,6 +1,8 @@
-import "dotenv/config";     
+import "dotenv/config";
 import app from "./app.js";
 import cloudinary from "cloudinary";
+import http from "http";
+import { initSocket } from "./socket.js";
 
 cloudinary.v2.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -9,6 +11,11 @@ cloudinary.v2.config({
 });
 
 const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
+
+const server = http.createServer(app);
+
+initSocket(server);
+
+server.listen(PORT, () => {
   console.log(`Server listening on port ${PORT}`);
 });

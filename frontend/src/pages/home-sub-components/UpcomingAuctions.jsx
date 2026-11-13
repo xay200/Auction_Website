@@ -59,7 +59,7 @@ const UpcomingAuctions = () => {
                       Giá khởi điểm:
                     </p>{" "}
                     <p className="text-[#fdba88 font-semibold]">
-                      {element.startingBid} VNĐ
+                      {element.startingBid.toLocaleString("vi-VN")} VNĐ
                     </p>{" "}
                   </div>
                   <div className="flex flex-col">
@@ -90,14 +90,14 @@ const UpcomingAuctions = () => {
                   </div>
                   <div className="flex justify-between">
                     <p className="text-stone-600 font-semibold">
-                      Starting Bid:
+                      Giá khởi điểm:
                     </p>{" "}
                     <p className="text-[#fdba88 font-semibold]">
-                      {element.startingBid} VNĐ. 
+                      {element.startingBid.toLocaleString("vi-VN")} VNĐ. 
                     </p>{" "}
                   </div>
                   <div className="flex flex-col">
-                    <p className="text-stone-600 font-bold">Starting Time:</p>
+                    <p className="text-stone-600 font-bold">Thời gian bắt đầu:</p>
                     <p className="text-black  text-[12px]">{element.startTime}</p>
                   </div>
                 </Link>
@@ -126,11 +126,11 @@ const UpcomingAuctions = () => {
                       Giá khởi điểm:
                     </p>{" "}
                     <p className="text-[#fdba88 font-semibold]">
-                     {element.startingBid} VNĐ 
+                     {element.startingBid.toLocaleString("vi-VN")} VNĐ 
                     </p>{" "}
                   </div>
                   <div className="flex flex-col">
-                    <p className="text-stone-600 font-bold">Starting Time:</p>
+                    <p className="text-stone-600 font-bold">Thời gian bắt đầu:</p>
                     <p className="text-black  text-[12px]">{element.startTime}</p>
                   </div>
                 </Link>

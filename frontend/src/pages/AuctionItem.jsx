@@ -1,6 +1,10 @@
 import Spinner from "@/custom-components/Spinner";
-import { getAuctionDetail } from "@/store/slices/auctionSlice";
+import {
+  getAuctionDetail,
+  updateAuctionRealtime,
+} from "@/store/slices/auctionSlice";
 import { placeBid } from "@/store/slices/bidSlice";
+import { socket } from "@/socket";
 import React, { useEffect, useState } from "react";
 import { FaGreaterThan } from "react-icons/fa";
 import { RiAuctionFill } from "react-icons/ri";
@@ -9,50 +13,67 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 
 const AuctionItem = () => {
   const { id } = useParams();
+
   const { loading, auctionDetail, auctionBidders } = useSelector(
     (state) => state.auction
   );
-  // const { isAuthenticated } = useSelector((state) => state.user);
 
   const { isAuthenticated, authLoading } = useSelector(
-  (state) => state.user
-);
+    (state) => state.user
+  );
 
   const navigateTo = useNavigate();
   const dispatch = useDispatch();
 
-  const [amount, setAmount] = useState(0);
+  const [amount, setAmount] = useState("");
+
   const handleBid = () => {
+    if (!amount || Number(amount) <= 0) {
+      return;
+    }
+
     const formData = new FormData();
     formData.append("amount", amount);
+
     dispatch(placeBid(id, formData));
-    dispatch(getAuctionDetail(id));
+    setAmount("");
   };
 
-  // useEffect(() => {
-  //   if (!isAuthenticated) {
-  //     navigateTo("/");
-  //   }
-  //   if (id) {
-  //     dispatch(getAuctionDetail(id));
-  //   }
-  // }, [isAuthenticated]);
-
   useEffect(() => {
-  // Chờ xác thực đăng nhập hoàn tất
-  if (authLoading) return;
+    if (authLoading) return;
 
-  // Chỉ chuyển hướng khi xác thực thất bại
-  if (!isAuthenticated) {
-    navigateTo("/", { replace: true });
-    return;
-  }
+    if (!isAuthenticated) {
+      navigateTo("/", { replace: true });
+      return;
+    }
 
-  // Lấy thông tin phiên đấu giá
-  if (id) {
-    dispatch(getAuctionDetail(id));
-  }
-}, [isAuthenticated, authLoading, id, dispatch, navigateTo]);
+    if (id) {
+      dispatch(getAuctionDetail(id));
+    }
+  }, [isAuthenticated, authLoading, id, dispatch, navigateTo]);
+
+  // Kết nối Socket.IO và nhận cập nhật giá theo thời gian thực
+  useEffect(() => {
+    if (!id || !isAuthenticated || authLoading) return;
+
+    socket.emit("joinAuction", id);
+
+    const handleNewBid = (data) => {
+      if (data.auctionId?.toString() !== id.toString()) {
+        return;
+      }
+
+      dispatch(updateAuctionRealtime(data));
+    };
+
+    socket.on("newBid", handleNewBid);
+
+    return () => {
+      socket.off("newBid", handleNewBid);
+      socket.emit("leaveAuction", id);
+    };
+  }, [id, isAuthenticated, authLoading, dispatch]);
+
   return (
     <>
       <section className="w-full ml-0 m-0 h-fit px-5 pt-20 lg:pl-[320px] flex flex-col">
@@ -61,18 +82,23 @@ const AuctionItem = () => {
             to="/"
             className="font-semibold transition-all duration-300 hover:text-[#D6482B]"
           >
-          Trang chủ
+            Trang chủ
           </Link>
+
           <FaGreaterThan className="text-stone-400" />
+
           <Link
-            to={"/auctions"}
+            to="/auctions"
             className="font-semibold transition-all duration-300 hover:text-[#D6482B]"
           >
-          Danh sách đấu giá
+            Danh sách đấu giá
           </Link>
+
           <FaGreaterThan className="text-stone-400" />
+
           <p className="text-stone-600">{auctionDetail.title}</p>
         </div>
+
         {loading ? (
           <Spinner />
         ) : (
@@ -85,28 +111,43 @@ const AuctionItem = () => {
                     alt={auctionDetail.title}
                   />
                 </div>
+
                 <div className="flex flex-col justify-around pb-4">
                   <h3 className="text-[#111] text-xl font-semibold mb-2 min-[480px]:text-xl md:text-2xl lg:text-3xl">
                     {auctionDetail.title}
                   </h3>
+
                   <p className="text-xl font-semibold">
                     Tình trạng:{" "}
                     <span className="text-[#D6482B]">
-                      {auctionDetail.condition === "New" ? "Mới" : "Đã qua sử dụng"}
+                      {auctionDetail.condition === "New"
+                        ? "Mới"
+                        : "Đã qua sử dụng"}
                     </span>
                   </p>
+
                   <p className="text-xl font-semibold">
                     Giá khởi điểm:{" "}
                     <span className="text-[#D6482B]">
-                      {auctionDetail.startingBid}VNĐ
+                      {auctionDetail.currentBid?.toLocaleString("vi-VN")} VNĐ
+                    </span>
+                  </p>
+
+                  <p className="text-xl font-semibold">
+                    Giá hiện tại:{" "}
+                    <span className="text-[#D6482B]">
+                      {auctionDetail.currentBid?.toLocaleString("vi-VN")} VNĐ
                     </span>
                   </p>
                 </div>
               </div>
+
               <p className="text-xl w-fit font-bold">
                 Mô tả sản phẩm đấu giá
               </p>
+
               <hr className="my-2 border-t-[1px] border-t-stone-700" />
+
               {auctionDetail.description &&
                 auctionDetail.description.split(". ").map((element, index) => {
                   return (
@@ -116,10 +157,12 @@ const AuctionItem = () => {
                   );
                 })}
             </div>
+
             <div className="flex-1">
               <header className="bg-stone-200 py-4 text-[24px] font-semibold px-4">
                 LỊCH SỬ ĐẶT GIÁ
               </header>
+
               <div className="bg-white px-4 min-h-fit lg:min-h-[650px]">
                 {auctionBidders &&
                 new Date(auctionDetail.startTime) < Date.now() &&
@@ -128,7 +171,7 @@ const AuctionItem = () => {
                     auctionBidders.map((element, index) => {
                       return (
                         <div
-                          key={index}
+                          key={element.userId || index}
                           className="py-2 flex items-center justify-between"
                         >
                           <div className="flex items-center gap-4">
@@ -137,14 +180,16 @@ const AuctionItem = () => {
                               alt={element.userName}
                               className="w-12 h-12 rounded-full my-2 hidden md:block"
                             />
+
                             <p className="text-[18px] font-semibold">
                               {element.userName}
                             </p>
 
                             <p className="text-[#D6482B] font-semibold">
                               {element.amount.toLocaleString("vi-VN")} VNĐ
-                           </p>
+                            </p>
                           </div>
+
                           {index === 0 ? (
                             <p className="text-[20px] font-semibold text-green-600">
                               1st
@@ -191,13 +236,16 @@ const AuctionItem = () => {
                   <>
                     <div className="flex gap-3 flex-col sm:flex-row sm:items-center">
                       <p className="text-white">Đặt giá</p>
+
                       <input
                         type="number"
+                        min={0}
                         className="w-32 focus:outline-none md:text-[20px] p-1"
                         value={amount}
                         onChange={(e) => setAmount(e.target.value)}
                       />
                     </div>
+
                     <button
                       className="p-4 text-white bg-black rounded-full transition-all duration-300 hover:bg-[#222]"
                       onClick={handleBid}

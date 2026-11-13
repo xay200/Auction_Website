@@ -63,7 +63,7 @@ const Card = ({ imgSrc, title, startingBid, startTime, endTime, id }) => {
             <p className="text-stone-600 font-light">
               Giá khởi điểm:{" "}
               <span className="text-[#fdba88] font-bold ml-1">
-                {startingBid} VNĐ
+                {startingBid.toLocaleString("vi-VN")} VNĐ
               </span>
             </p>
           )}

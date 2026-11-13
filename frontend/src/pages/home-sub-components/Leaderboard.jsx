@@ -42,7 +42,7 @@ const Leaderboard = () => {
                       </span>
                     </td>
                     <td className="py-2 px-4">{element.userName}</td>
-                    <td className="py-2 px-4">{element.moneySpent}</td>
+                    <td className="py-2 px-4">{element.moneySpent.toLocaleString("vi-VN")} VNĐ</td>
                     <td className="py-2 px-4">{element.auctionsWon}</td>
                   </tr>
                 );
