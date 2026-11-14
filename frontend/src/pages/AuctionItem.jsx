@@ -129,7 +129,7 @@ const AuctionItem = () => {
                   <p className="text-xl font-semibold">
                     Giá khởi điểm:{" "}
                     <span className="text-[#D6482B]">
-                      {auctionDetail.currentBid?.toLocaleString("vi-VN")} VNĐ
+                      {auctionDetail.startingBid?.toLocaleString("vi-VN")} VNĐ
                     </span>
                   </p>
 
