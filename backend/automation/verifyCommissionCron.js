@@ -46,8 +46,8 @@ export const verifyCommissionCron = () => {
             .toString()
             .substring(0, 15);
 
-          const subject = `Your Payment Has Been Successfully Verified And Settled`;
-          const message = `Dear ${user.userName},\n\nWe are pleased to inform you that your recent payment has been successfully verified and settled. Thank you for promptly providing the necessary proof of payment. Your account has been updated, and you can now proceed with your activities on our platform without any restrictions.\n\nPayment Details:\nAmount Settled: ${proof.amount}\nUnpaid Amount: ${updatedUserData.unpaidCommission}\nDate of Settlement: ${settlementDate}\n\nBest regards,\nWeBid Auction Team`;
+          const subject = `Thanh toán của bạn đã được xác nhận và hoàn tất thành công.`;
+          const message = `Xin chào ${user.userName},\n\nChúng tôi vui mừng thông báo rằng khoản thanh toán gần đây của bạn đã được xác minh và hoàn tất thành công. Cảm ơn bạn đã nhanh chóng cung cấp minh chứng thanh toán cần thiết Tài khoản của bạn đã được cập nhật. Bạn có thể tiếp tục sử dụng các chức năng trên hệ thống mà không còn bị hạn chế.\n\nCHI TIẾT THANH TOÁN:\nSố tiền đã thanh toán: ${proof.amount}\nSố tiền hoa hồng còn phải thanh toán: ${updatedUserData.unpaidCommission}\nNgày hoàn tất thanh toán: ${settlementDate}\n\nTrân trọng,\nWeBid Auction Team`;
           sendEmail({ email: user.email, subject, message });
         }
         console.log(`User ${proof.userId} paid commission of ${proof.amount}`);

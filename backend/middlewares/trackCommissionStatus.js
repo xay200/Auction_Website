@@ -8,7 +8,7 @@ export const trackCommissionStatus = catchAsyncErrors(
     if (user.unpaidCommission > 0) {
       return next(
         new ErrorHandler(
-          "You have unpaid commissions. Please pay them before posting a new auction.",
+          "Bạn vẫn còn khoản hoa hồng chưa thanh toán. Vui lòng thanh toán trước khi đăng phiên đấu giá mới.",
           403
         )
       );

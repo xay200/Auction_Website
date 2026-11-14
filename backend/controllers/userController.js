@@ -6,14 +6,14 @@ import { generateToken } from "../utils/jwtToken.js";
 
 export const register = catchAsyncErrors(async (req, res, next) => {
   if (!req.files || Object.keys(req.files).length === 0) {
-    return next(new ErrorHandler("Profile Image Required.", 400));
+    return next(new ErrorHandler("Vui lòng cung cấp ảnh đại diện.", 400));
   }
 
   const { profileImage } = req.files;
 
   const allowedFormats = ["image/png", "image/jpeg", "image/webp"];
   if (!allowedFormats.includes(profileImage.mimetype)) {
-    return next(new ErrorHandler("File format not supported.", 400));
+    return next(new ErrorHandler("Định dạng tệp không được hỗ trợ.", 400));
   }
 
   const {
@@ -31,26 +31,26 @@ export const register = catchAsyncErrors(async (req, res, next) => {
   } = req.body;
 
   if (!userName || !email || !phone || !password || !address || !role) {
-    return next(new ErrorHandler("Please fill full form.", 400));
+    return next(new ErrorHandler("Vui lòng điền đầy đủ thông tin.", 400));
   }
   if (role === "Auctioneer") {
     if (!bankAccountName || !bankAccountNumber || !bankName) {
       return next(
-        new ErrorHandler("Please provide your full bank details.", 400)
+        new ErrorHandler("Vui lòng cung cấp đầy đủ thông tin tài khoản ngân hàng.", 400)
       );
     }
     if (!easypaisaAccountNumber) {
       return next(
-        new ErrorHandler("Please provide your easypaisa account number.", 400)
+        new ErrorHandler("Vui lòng cung cấp số tài khoản", 400)
       );
     }
     if (!paypalEmail) {
-      return next(new ErrorHandler("Please provide your paypal email.", 400));
+      return next(new ErrorHandler("Vui lòng cung cấp địa chỉ email Paypal.", 400));
     }
   }
   const isRegistered = await User.findOne({ email });
   if (isRegistered) {
-    return next(new ErrorHandler("User already registered.", 400));
+    return next(new ErrorHandler("Tài khoản đã được đăng ký.", 400));
   }
   const cloudinaryResponse = await cloudinary.uploader.upload(
     profileImage.tempFilePath,
@@ -60,11 +60,11 @@ export const register = catchAsyncErrors(async (req, res, next) => {
   );
   if (!cloudinaryResponse || cloudinaryResponse.error) {
     console.error(
-      "Cloudinary error:",
-      cloudinaryResponse.error || "Unknown cloudinary error."
+      "Lỗi Cloudinary:",
+      cloudinaryResponse.error || "Lỗi Cloudinary không xác định."
     );
     return next(
-      new ErrorHandler("Failed to upload profile image to cloudinary.", 500)
+      new ErrorHandler("Không thể tải ảnh đại diện lên Cloudinary.", 500)
     );
   }
   const user = await User.create({
@@ -92,23 +92,23 @@ export const register = catchAsyncErrors(async (req, res, next) => {
       },
     },
   });
-  generateToken(user, "User Registered.", 201, res);
+  generateToken(user, "Đăng ký tài khoản thành công.", 201, res);
 });
 
 export const login = catchAsyncErrors(async (req, res, next) => {
   const { email, password } = req.body;
   if (!email || !password) {
-    return next(new ErrorHandler("Please fill full form."));
+    return next(new ErrorHandler("Vui lòng điền đầy đủ thông tin."));
   }
   const user = await User.findOne({ email }).select("+password");
   if (!user) {
-    return next(new ErrorHandler("Invalid credentials.", 400));
+    return next(new ErrorHandler("Email hoặc mật khẩu không chính xác.", 400));
   }
   const isPasswordMatch = await user.comparePassword(password);
   if (!isPasswordMatch) {
-    return next(new ErrorHandler("Invalid credentials.", 400));
+    return next(new ErrorHandler("Email hoặc mật khẩu không chính xác.", 400));
   }
-  generateToken(user, "Login successfully.", 200, res);
+  generateToken(user, "Đăng nhập thành công.", 200, res);
 });
 
 export const getProfile = catchAsyncErrors(async (req, res, next) => {
@@ -130,7 +130,7 @@ export const logout = catchAsyncErrors(async (req, res, next) => {
     })
     .json({
       success: true,
-      message: "Logout Successfully.",
+      message: "Đăng xuất thành công.",
     });
 });
 

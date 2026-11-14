@@ -18,7 +18,7 @@ export const calculateCommission = async (auctionId) => {
 
 export const proofOfCommission = catchAsyncErrors(async (req, res, next) => {
   if (!req.files || Object.keys(req.files).length === 0) {
-    return next(new ErrorHandler("Payment Proof Screenshot required.", 400));
+    return next(new ErrorHandler("Vui lòng cung cấp ảnh minh chứng thanh toán.", 400));
   }
   const { proof } = req.files;
   const { amount, comment } = req.body;
@@ -26,21 +26,21 @@ export const proofOfCommission = catchAsyncErrors(async (req, res, next) => {
 
   if (!amount || !comment) {
     return next(
-      new ErrorHandler("Ammount & comment are required fields.", 400)
+      new ErrorHandler("Nhập nội dung và số tiền", 400)
     );
   }
 
   if (user.unpaidCommission === 0) {
     return res.status(200).json({
       success: true,
-      message: "You don't have any unpaid commissions.",
+      message: "Bạn không có khoản hoa hồng nào chưa thanh toán.",
     });
   }
 
   if (user.unpaidCommission < amount) {
     return next(
       new ErrorHandler(
-        `The amount exceeds your unpaid commission balance. Please enter an amount up to ${user.unpaidCommission}`,
+        `Số tiền thanh toán vượt quá khoản hoa hồng chưa thanh toán. Vui lòng nhập số tiền không vượt quá ${user.unpaidCommission}.`,
         403
       )
     );
@@ -48,7 +48,7 @@ export const proofOfCommission = catchAsyncErrors(async (req, res, next) => {
 
   const allowedFormats = ["image/png", "image/jpeg", "image/webp"];
   if (!allowedFormats.includes(proof.mimetype)) {
-    return next(new ErrorHandler("ScreenShot format not supported.", 400));
+    return next(new ErrorHandler("Định dạng ảnh minh chứng không được hỗ trợ.", 400));
   }
 
   const cloudinaryResponse = await cloudinary.uploader.upload(
@@ -59,10 +59,10 @@ export const proofOfCommission = catchAsyncErrors(async (req, res, next) => {
   );
   if (!cloudinaryResponse || cloudinaryResponse.error) {
     console.error(
-      "Cloudinary error:",
-      cloudinaryResponse.error || "Unknown cloudinary error."
+      "Lỗi Cloudinary:",
+      cloudinaryResponse.error || "Lỗi Cloudinary không xác định."
     );
-    return next(new ErrorHandler("Failed to upload payment proof.", 500));
+    return next(new ErrorHandler("Không thể tải ảnh minh chứng thanh toán lên hệ thống.", 500));
   }
   const commissionProof = await PaymentProof.create({
     userId: req.user._id,
@@ -76,7 +76,7 @@ export const proofOfCommission = catchAsyncErrors(async (req, res, next) => {
   res.status(201).json({
     success: true,
     message:
-      "Your proof has been submitted successfully. We will review it and responed to you within 24 hours.",
+      "Minh chứng thanh toán của bạn đã được gửi thành công. Chúng tôi sẽ xem xét và phản hồi trong vòng 24 giờ",
     commissionProof,
   });
 });

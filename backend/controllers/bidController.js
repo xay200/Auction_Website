@@ -11,19 +11,19 @@ export const placeBid = catchAsyncErrors(async (req, res, next) => {
   const auctionItem = await Auction.findById(id);
 
   if (!auctionItem) {
-    return next(new ErrorHandler("Auction Item not found.", 404));
+    return next(new ErrorHandler("Không tìm thấy sản phẩm đấu giá.", 404));
   }
 
   const { amount } = req.body;
 
   if (!amount) {
-    return next(new ErrorHandler("Please place your bid.", 404));
+    return next(new ErrorHandler("Vui lòng nhập mức giá.", 404));
   }
 
   if (amount <= auctionItem.currentBid) {
     return next(
       new ErrorHandler(
-        "Bid amount must be greater than the current bid.",
+        "Giá đặt phải lớn hơn mức giá hiện tại.",
         404
       )
     );
@@ -32,7 +32,7 @@ export const placeBid = catchAsyncErrors(async (req, res, next) => {
   if (amount < auctionItem.startingBid) {
     return next(
       new ErrorHandler(
-        "Bid amount must be greater than starting bid.",
+        "Giá đặt phải lớn hơn giá khởi điểm.",
         404
       )
     );
@@ -65,7 +65,7 @@ export const placeBid = catchAsyncErrors(async (req, res, next) => {
       const bidderDetail = await User.findById(req.user._id);
 
       if (!bidderDetail) {
-        return next(new ErrorHandler("User not found.", 404));
+        return next(new ErrorHandler("Không tìm thấy người dùng.", 404));
       }
 
       const bid = await Bid.create({
@@ -102,7 +102,6 @@ export const placeBid = catchAsyncErrors(async (req, res, next) => {
         amount: bid.amount,
       }));
 
-    // Phát sự kiện Socket.IO đến những người trong room
     getIO()
       .to(`auction-${id}`)
       .emit("newBid", {
@@ -114,13 +113,13 @@ export const placeBid = catchAsyncErrors(async (req, res, next) => {
 
     res.status(201).json({
       success: true,
-      message: "Bid placed.",
+      message: "Đặt giá thành công.",
       currentBid: auctionItem.currentBid,
     });
   } catch (error) {
     return next(
       new ErrorHandler(
-        error.message || "Failed to place bid.",
+        error.message || "Không thể thực hiện đặt giá.",
         500
       )
     );

@@ -5,20 +5,20 @@ import jwt from "jsonwebtoken";
 const userSchema = new mongoose.Schema({
   userName: {
     type: String,
-    minLength: [1, "Username must caontain at least 1 characters."],
-    maxLength: [40, "Username cannot exceed 40 characters."],
+    minLength: [1, "Tên người dùng phải có ít nhất 1 ký tự."],
+    maxLength: [40, "Tên người dùng không được vượt quá 40 ký tự."],
   },
   password: {
     type: String,
     selected: false,
-    minLength: [8, "Password must caontain at least 8 characters."],
+    minLength: [8, "Mật khẩu phải có ít nhất 8 ký tự."],
   },
   email: String,
   address: String,
   phone: {
     type: String,
-    minLength: [10, "Phone Number must caontain exact 10 digits."],
-    maxLength: [10, "Phone Number must caontain exact 10 digits."],
+    minLength: [10, "Số điện thoại phải có đúng 10 chữ số."],
+    maxLength: [10, "Số điện thoại phải có đúng 10 chữ số."],
   },
   profileImage: {
     public_id: {
