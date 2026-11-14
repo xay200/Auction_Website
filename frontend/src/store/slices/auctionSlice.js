@@ -123,7 +123,7 @@ export const getAllAuctionItems =
 
     try {
       const response = await axios.get(
-        "http://localhost:5000/api/v1/auctionitem/allitems",
+        "https://webid-auction.onrender.com/api/v1/auctionitem/allitems",
         {
           params: {
             keyword,
@@ -149,7 +149,7 @@ export const getMyAuctionItems = () => async (dispatch) => {
 
   try {
     const response = await axios.get(
-      "http://localhost:5000/api/v1/auctionitem/myitems",
+      "https://webid-auction.onrender.com/api/v1/auctionitem/myitems",
       { withCredentials: true },
     );
 
@@ -167,7 +167,7 @@ export const getAuctionDetail = (id) => async (dispatch) => {
 
   try {
     const response = await axios.get(
-      `http://localhost:5000/api/v1/auctionitem/auction/${id}`,
+      `https://webid-auction.onrender.com/api/v1/auctionitem/auction/${id}`,
       { withCredentials: true },
     );
 
@@ -185,7 +185,7 @@ export const createAuction = (data) => async (dispatch) => {
 
   try {
     const response = await axios.post(
-      "http://localhost:5000/api/v1/auctionitem/create",
+      "https://webid-auction.onrender.com/api/v1/auctionitem/create",
       data,
       {
         withCredentials: true,
@@ -209,7 +209,7 @@ export const republishAuction = (id, data) => async (dispatch) => {
 
   try {
     const response = await axios.put(
-      `http://localhost:5000/api/v1/auctionitem/item/republish/${id}`,
+      `https://webid-auction.onrender.com/api/v1/auctionitem/item/republish/${id}`,
       data,
       {
         withCredentials: true,
@@ -235,7 +235,7 @@ export const deleteAuction = (id) => async (dispatch) => {
 
   try {
     const response = await axios.delete(
-      `http://localhost:5000/api/v1/auctionitem/delete/${id}`,
+      `https://webid-auction.onrender.com/api/v1/auctionitem/delete/${id}`,
       {
         withCredentials: true,
       },

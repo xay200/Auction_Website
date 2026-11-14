@@ -1,4 +1,3 @@
-
 import mongoose from "mongoose";
 
 if (!process.env.MONGO_URI) {
@@ -8,7 +7,7 @@ if (!process.env.MONGO_URI) {
 
 export const connection = () => {
   mongoose
-    .connect(process.env.MONGO_URI, {   // ← đổi thành MONGODB_URI
+    .connect(process.env.MONGO_URI, {   
       dbName: "MERN_AUCTION_PLATFORM",
     })
     .then(() => {
