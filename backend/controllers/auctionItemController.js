@@ -54,13 +54,6 @@ export const addNewAuctionItem = catchAsyncErrors(async (req, res, next) => {
       ),
     );
   }
-  // const alreadyOneAuctionActive = await Auction.find({
-  //   createdBy: req.user._id,
-  //   endTime: { $gt: Date.now() },
-  // });
-  // if (alreadyOneAuctionActive.length > 0) {
-  //   return next(new ErrorHandler("You already have one active auction.", 400));
-  // }
 
   const MAX_ACTIVE_AUCTIONS = 5;
   const activeCount = await Auction.countDocuments({
