@@ -14,15 +14,6 @@
 //       commissionCalculated: false,
 //     });
 //     for (const auction of endedAuctions) {
-//         console.log("--------------------------------");
-//         console.log("Auction ID:", auction._id);
-//         console.log("Title:", auction.title);
-//         console.log("End time:", auction.endTime);
-//         console.log("Current bid:", auction.currentBid);
-//         console.log(
-//           "Commission calculated:",
-//           auction.commissionCalculated
-//         );
 //       try {
 //         const commissionAmount = await calculateCommission(auction._id);
 //         auction.commissionCalculated = true;
@@ -64,12 +55,12 @@
 //           await auction.save();
 //         }
 //       } catch (error) {
-//         console.error("CRON ERROR:", error);
 //         return next(console.error(error || "Some error in ended auction cron"));
 //       }
 //     }
 //   });
 // };
+
 
 
 import cron from "node-cron";
@@ -81,100 +72,145 @@ import { calculateCommission } from "../controllers/commissionController.js";
 
 export const endedAuctionCron = () => {
   cron.schedule("*/1 * * * *", async () => {
-    console.log("\n========== ENDED AUCTION CRON START ==========");
-
     try {
       const now = new Date();
 
+      console.log("\n========== ENDED AUCTION CRON START ==========");
       console.log("[1] Current time:", now.toISOString());
+      console.log("[2] MongoDB readyState:", Auction.db.readyState);
 
-      // Kiểm tra kết nối MongoDB
-      console.log("[2] MongoDB readyState:",
-        Auction.db.readyState
-      );
+      // Lấy toàn bộ phiên đấu giá để kiểm tra dữ liệu
+      const allAuctions = await Auction.find({});
 
-      // Tìm các phiên đã hết hạn
+      console.log("[3] Total auctions:", allAuctions.length);
+
+      allAuctions.forEach((auction, index) => {
+        console.log(`--- Auction ${index + 1} ---`);
+        console.log("ID:", auction._id);
+        console.log("Title:", auction.title);
+        console.log("Start time:", auction.startTime);
+        console.log("End time:", auction.endTime);
+        console.log("End time type:", typeof auction.endTime);
+        console.log(
+          "End time parsed:",
+          new Date(auction.endTime).toString()
+        );
+        console.log(
+          "Is ended:",
+          new Date(auction.endTime) < now
+        );
+        console.log(
+          "Commission calculated:",
+          auction.commissionCalculated
+        );
+      });
+
+      // Tìm các phiên đã kết thúc
+      console.log("[4] Finding ended auctions...");
+
       const endedAuctions = await Auction.find({
         endTime: { $lt: now },
         commissionCalculated: false,
       });
 
-      console.log("[3] Found ended auctions:", endedAuctions.length);
+      console.log(
+        "[5] Found ended auctions:",
+        endedAuctions.length
+      );
 
       if (endedAuctions.length === 0) {
         console.log("[INFO] No auction needs processing");
       }
 
       for (const auction of endedAuctions) {
-        console.log("\n--------------------------------");
-        console.log("Processing auction:", auction._id);
-        console.log("Title:", auction.title);
-        console.log("End time:", auction.endTime);
-        console.log("End time type:", typeof auction.endTime);
-        console.log("Current bid:", auction.currentBid);
-        console.log(
-          "Commission calculated:",
-          auction.commissionCalculated
-        );
-
         try {
-          // BƯỚC 1: Tính hoa hồng
-          console.log("[4] Calculating commission...");
+          console.log("\n========================================");
+          console.log("[AUCTION] Processing:", auction._id);
+          console.log("[AUCTION] Title:", auction.title);
+          console.log("[AUCTION] Current bid:", auction.currentBid);
+
+          // Tính hoa hồng
+          console.log("[6] Calculating commission...");
 
           const commissionAmount = await calculateCommission(
             auction._id
           );
 
-          console.log("[4 SUCCESS] Commission:", commissionAmount);
+          console.log(
+            "[7] Commission amount:",
+            commissionAmount
+          );
 
-          // BƯỚC 2: Tìm người đặt giá cao nhất
-          console.log("[5] Finding highest bidder...");
+          // Tìm người đặt giá cao nhất
+          console.log("[8] Finding highest bidder...");
 
           const highestBidder = await Bid.findOne({
             auctionItem: auction._id,
             amount: auction.currentBid,
           });
 
-          console.log("[5 RESULT] Highest bidder:", highestBidder);
+          console.log(
+            "[9] Highest bidder result:",
+            highestBidder
+          );
 
-          // BƯỚC 3: Tìm người bán
-          console.log("[6] Finding auctioneer...");
+          // Tìm người bán
+          console.log("[10] Finding auctioneer...");
 
           const auctioneer = await User.findById(auction.createdBy);
 
-          console.log("[6 RESULT] Auctioneer:", auctioneer?._id);
+          console.log(
+            "[11] Auctioneer:",
+            auctioneer
+              ? {
+                  id: auctioneer._id,
+                  email: auctioneer.email,
+                  unpaidCommission: auctioneer.unpaidCommission,
+                }
+              : null
+          );
 
           if (!auctioneer) {
             throw new Error("Auctioneer not found");
           }
 
-          // BƯỚC 4: Xử lý người thắng
+          auctioneer.unpaidCommission = commissionAmount;
+
           if (highestBidder) {
-            console.log("[7] Winner found");
+            console.log("[12] Winner found");
 
             console.log(
-              "[7] Bidder field:",
+              "[13] Bidder reference:",
               highestBidder.bidder
             );
 
-            const winnerId =
-              highestBidder.bidder?._id ||
-              highestBidder.bidder;
+            const bidderId =
+              highestBidder.bidder?._id || highestBidder.bidder;
 
-            const bidder = await User.findById(winnerId);
+            const bidder = await User.findById(bidderId);
 
-            console.log("[7 RESULT] Winner:", bidder?._id);
+            console.log(
+              "[14] Bidder:",
+              bidder
+                ? {
+                    id: bidder._id,
+                    userName: bidder.userName,
+                    email: bidder.email,
+                  }
+                : null
+            );
 
             if (!bidder) {
-              throw new Error("Winner not found");
+              throw new Error("Bidder not found");
             }
 
             // Cập nhật người thắng
             auction.highestBidder = bidder._id;
+            auction.commissionCalculated = true;
 
             await auction.save();
 
-            console.log("[8 SUCCESS] Auction winner saved");
+            console.log("[15] Auction winner saved successfully");
 
             // Cập nhật thống kê người thắng
             const updatedBidder = await User.findByIdAndUpdate(
@@ -188,8 +224,7 @@ export const endedAuctionCron = () => {
               { new: true }
             );
 
-            console.log("[9 SUCCESS] Winner statistics:", {
-              id: updatedBidder?._id,
+            console.log("[16] Winner statistics updated:", {
               moneySpent: updatedBidder?.moneySpent,
               auctionsWon: updatedBidder?.auctionsWon,
             });
@@ -205,18 +240,12 @@ export const endedAuctionCron = () => {
               { new: true }
             );
 
-            console.log("[10 SUCCESS] Auctioneer commission:", {
-              id: updatedAuctioneer?._id,
-              unpaidCommission: updatedAuctioneer?.unpaidCommission,
-            });
+            console.log(
+              "[17] Auctioneer commission updated:",
+              updatedAuctioneer?.unpaidCommission
+            );
 
-            // Đánh dấu đã tính hoa hồng
-            auction.commissionCalculated = true;
-            await auction.save();
-
-            console.log("[11 SUCCESS] Commission marked as calculated");
-
-            // BƯỚC 5: Gửi email
+            // Gửi email
             const subject = `Congratulations! You won the auction for ${auction.title}`;
 
             const message = `Dear ${bidder.userName},
@@ -228,63 +257,69 @@ Before proceeding for payment contact your auctioneer via your auctioneer email:
 Please complete your payment using one of the following methods:
 
 1. Bank Transfer:
-- Account Name: ${auctioneer.paymentMethods?.bankTransfer?.bankAccountName || "Not provided"}
-- Account Number: ${auctioneer.paymentMethods?.bankTransfer?.bankAccountNumber || "Not provided"}
-- Bank: ${auctioneer.paymentMethods?.bankTransfer?.bankName || "Not provided"}
+- Account Name: ${auctioneer.paymentMethods.bankTransfer.bankAccountName}
+- Account Number: ${auctioneer.paymentMethods.bankTransfer.bankAccountNumber}
+- Bank: ${auctioneer.paymentMethods.bankTransfer.bankName}
 
 2. Easypaisa:
-- Account Number: ${auctioneer.paymentMethods?.easypaisa?.easypaisaAccountNumber || "Not provided"}
+- Account Number: ${auctioneer.paymentMethods.easypaisa.easypaisaAccountNumber}
 
 3. PayPal:
-- Email: ${auctioneer.paymentMethods?.paypal?.paypalEmail || "Not provided"}
+- Send payment to: ${auctioneer.paymentMethods.paypal.paypalEmail}
 
 4. Cash on Delivery (COD):
-- Please contact the auctioneer for payment instructions.
+- Pay 20% upfront before delivery.
+- The remaining 80% will be paid upon delivery.
 
 Thank you for participating!
 
 Best regards,
 WeBid Auction Team`;
 
-            try {
-              console.log("[12] Sending email to:", bidder.email);
+            console.log("[18] Sending email to:", bidder.email);
 
+            try {
               await sendEmail({
                 email: bidder.email,
                 subject,
                 message,
               });
 
-              console.log("[12 SUCCESS] Email sent");
+              console.log("[19] Email sent successfully");
             } catch (emailError) {
-              console.error("[12 EMAIL ERROR]", emailError);
+              console.error("[EMAIL ERROR]", emailError);
             }
           } else {
-            console.log("[7] No bidder found");
+            console.log("[12] No highest bidder found");
 
             auction.commissionCalculated = true;
             await auction.save();
 
-            console.log("[8 SUCCESS] Auction without bidder processed");
+            console.log("[13] Auction saved without winner");
           }
 
-          console.log("[SUCCESS] Auction completed:", auction._id);
+          console.log(
+            "[SUCCESS] Auction processed:",
+            auction._id
+          );
 
         } catch (error) {
           console.error(
             "[AUCTION PROCESSING ERROR]",
             auction._id,
-            error.stack || error
+            error
           );
         }
       }
 
-      console.log("\n========== ENDED AUCTION CRON FINISHED ==========\n");
+      console.log(
+        "\n========== ENDED AUCTION CRON FINISHED ==========\n"
+      );
 
     } catch (error) {
       console.error(
         "[CRON GLOBAL ERROR]",
-        error.stack || error
+        error
       );
     }
   });
