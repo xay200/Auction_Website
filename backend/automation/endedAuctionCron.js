@@ -14,6 +14,15 @@ export const endedAuctionCron = () => {
       commissionCalculated: false,
     });
     for (const auction of endedAuctions) {
+        console.log("--------------------------------");
+        console.log("Auction ID:", auction._id);
+        console.log("Title:", auction.title);
+        console.log("End time:", auction.endTime);
+        console.log("Current bid:", auction.currentBid);
+        console.log(
+          "Commission calculated:",
+          auction.commissionCalculated
+        );
       try {
         const commissionAmount = await calculateCommission(auction._id);
         auction.commissionCalculated = true;
@@ -55,6 +64,7 @@ export const endedAuctionCron = () => {
           await auction.save();
         }
       } catch (error) {
+        console.error("CRON ERROR:", error);
         return next(console.error(error || "Some error in ended auction cron"));
       }
     }

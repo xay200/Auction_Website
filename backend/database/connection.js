@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 if (!process.env.MONGO_URI) {
-  console.error("❌ MONGODB_URI chưa được định nghĩa. Kiểm tra file .env.");
+  console.error("MONGODB_URI chưa được định nghĩa. Kiểm tra file .env.");
   process.exit(1);
 }
 
