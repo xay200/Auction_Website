@@ -180,7 +180,7 @@ const SignUp = () => {
                   <input
                     type="text"
                     value={bankAccountNumber}
-                    placeholder="IBAN / IFSC"
+                    placeholder="Só tài khoản"
                     onChange={(e) => setBankAccountNumber(e.target.value)}
                     className="text-[16px] py-2 bg-transparent border-b-[1px] border-b-stone-500 focus:outline-none sm:flex-1"
                     disabled={role === "Bidder"}
@@ -211,7 +211,7 @@ const SignUp = () => {
                   <input
                     type="email"
                     value={paypalEmail}
-                    placeholder="Tài khoản thanh toán"
+                    placeholder="Email thanh toán"
                     onChange={(e) => setPaypalEmail(e.target.value)}
                     className="text-[16px] py-2 bg-transparent border-b-[1px] border-b-stone-500 focus:outline-none sm:flex-1"
                     disabled={role === "Bidder"}

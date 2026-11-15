@@ -142,7 +142,7 @@ const UserProfile = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        Easypaisa Account Number
+                        Số thẻ
                       </label>
                       <input
                         type="text"
@@ -155,7 +155,7 @@ const UserProfile = () => {
                     </div>
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
-                        Paypal Email
+                        Email Thanh Toán
                       </label>
                       <input
                         type="text"
